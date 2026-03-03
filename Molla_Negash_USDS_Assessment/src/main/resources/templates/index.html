@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>FedReg Analyzer | Regulatory Data Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 antialiased">
+
+<div class="max-w-6xl mx-auto py-12 px-6">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">eCFR Regulatory Analysis</h1>
+            <p class="text-slate-500 mt-1">Quantifying administrative burden through Requirement Density metrics.</p>
+        </div>
+
+        <form th:action="@{/sync}" method="post">
+            <input type="hidden" name="limit" value="20">
+            <button type="submit"
+                    onclick="this.innerHTML='<span class=\'animate-spin mr-2\'>🔄</span> Processing...'; this.classList.add('opacity-50')"
+                    class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm active:bg-slate-100">
+                <span class="mr-2 text-blue-500">🔄</span>
+                Refresh Baseline
+            </button>
+        </form>
+    </header>
+
+    <footer class="mt-8 flex justify-between items-center text-slate-400 text-xs uppercase tracking-widest">
+        <p>Data Source: ecfr.gov API</p>
+        <p>&copy; 2026 Molla Negash | Regulatory Insights Engine</p>
+    </footer>
+</div>
+
+</body>
+</html>
