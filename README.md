@@ -1,136 +1,199 @@
-📘 Federal Regulatory Insights Engine — Case Study
-🧠 Overview
 
-The Federal Regulatory Insights Engine is a RegTech (Regulatory Technology) system designed to analyze the Electronic Code of Federal Regulations (eCFR) and quantify regulatory complexity across U.S. federal agencies.
+# 🏛️ Federal Regulatory Insights Engine
 
-Instead of treating regulations as static documents, the system transforms them into computable signals of administrative burden, enabling quantitative analysis of policy complexity using an NLP-driven metric called Requirement Density (RD).
+### *A Cloud-Native RegTech System for Quantifying Administrative Burden in U.S. Federal Regulations*
 
-🎯 Problem Statement
+---
 
-Regulatory frameworks are:
+## 📌 Overview
 
-Large-scale and continuously evolving
-Difficult to quantify in terms of compliance burden
-Written in highly unstructured legal language
+The **Federal Regulatory Insights Engine** is a regulatory intelligence system that analyzes the *Electronic Code of Federal Regulations (eCFR)* and transforms unstructured legal text into measurable computational signals of regulatory complexity.
 
-Traditional approaches lack a systematic, computational way to measure regulatory “strictness” or “burden.”
+It introduces a metric called **Requirement Density (RD)** to quantify administrative burden across federal agencies using NLP-based heuristics.
 
-💡 Solution
+---
 
-We built an analytical engine that:
+## 🎯 Problem Statement
 
-Processes raw eCFR regulatory text
-Extracts prescriptive legal language using NLP heuristics
-Computes a normalized metric: Requirement Density (RD)
-Flags agencies with high regulatory burden
-Visualizes results through a real-time dashboard
-📊 Requirement Density (RD) Model
+Regulatory documents are:
 
-The system defines regulatory burden as:
+* Large-scale and continuously evolving
+* Difficult to analyze quantitatively
+* Written in highly unstructured legal language
 
-RD=
-Total Word Count
-Count of Prescriptive Keywords
-	​
+There is no standardized computational metric to evaluate **regulatory strictness or compliance burden** across agencies.
 
-Key Insight:
+---
 
-Prescriptive legal terms (e.g., shall, must, prohibited, penalty, compliance) correlate with enforcement intensity and compliance cost.
+## 💡 Solution
 
-🏗 System Architecture
+This system:
 
-The system is designed as a cloud-ready, modular backend analytics engine.
+* Ingests eCFR regulatory datasets
+* Extracts prescriptive legal language using NLP heuristics
+* Computes **Requirement Density (RD)**
+* Flags high-burden agencies
+* Displays insights via a real-time dashboard
 
+---
+
+## 📊 Requirement Density (RD)
+
+[
+RD = \frac{\text{Prescriptive Keywords}}{\text{Total Word Count}}
+]
+
+### 📌 Interpretation
+
+* Higher RD → more regulatory burden
+* Lower RD → less prescriptive regulation
+
+### 🔎 Keywords used
+
+`shall`, `must`, `prohibited`, `penalty`, `compliance`
+
+---
+
+## 🏗️ System Architecture
+
+```
 User
- ↓
-Thymeleaf UI (Dashboard)
- ↓
+  ↓
+Thymeleaf Dashboard (UI)
+  ↓
 Spring Boot API Layer
- ↓
+  ↓
 NLP Analysis Engine
- ↓
-H2 Database (Dev / Ephemeral State)
- ↓
+  ↓
+H2 Database (Dev / Ephemeral)
+  ↓
 eCFR Data Processing Layer
-Core Components
-Spring Boot 3.4.2 (Java 17) — Backend API and orchestration layer
-NLP Engine — Rule-based extraction of regulatory language
-Parallel Processing Layer — Java Streams for concurrent agency analysis
-H2 In-Memory Database — Fast, stateless development datastore
-Thymeleaf + Tailwind UI — Real-time analytical dashboard
-⚙️ Key Engineering Decisions
-1. Stateless-first Design
+```
 
-The system is designed as a stateless computation service, where each request is independently processed without reliance on persistent session memory.
+---
 
-2. Lightweight Data Layer (H2)
+## ⚙️ Tech Stack
 
-H2 in-memory database is used for:
+| Layer            | Technology                  |
+| ---------------- | --------------------------- |
+| Backend          | Spring Boot 3.4.2           |
+| Language         | Java 17                     |
+| NLP Engine       | Custom rule-based extractor |
+| Concurrency      | Java Parallel Streams       |
+| Database         | H2 In-Memory DB             |
+| Frontend         | Thymeleaf + Tailwind CSS    |
+| Build Tool       | Maven                       |
+| Containerization | Docker                      |
 
-Fast prototyping
-Ephemeral computation results
-Avoiding unnecessary infrastructure overhead
+---
 
-The architecture is intentionally designed to support future migration to PostgreSQL if persistence, auditability, or multi-user tracking becomes required.
+## 🚀 Key Features
 
-3. Parallel Processing Optimization
+* 📊 Regulatory burden quantification (RD metric)
+* ⚡ Parallel processing of agency datasets
+* 🔍 NLP-based legal language extraction
+* 🧾 SHA-256 dataset integrity validation
+* 🚨 High-burden agency classification engine
+* 📡 Real-time dashboard visualization
 
-Java Parallel Streams are used to:
+---
 
-Concurrently fetch agency datasets
-Reduce processing latency
-Improve throughput for large-scale regulatory analysis
-4. Cloud Deployment Constraints
+## ⚙️ Engineering Decisions
 
-The system is containerized and designed for cloud environments such as Render.
+### 🧠 Stateless Design
 
-Key constraint handled:
+The system is designed as a **stateless computation engine**, where each request is processed independently.
 
+---
+
+### 🗄️ Database Strategy
+
+* H2 used for **fast, ephemeral computation**
+* No persistent storage required for current workload
+* Future-ready for PostgreSQL migration if audit/history is required
+
+---
+
+### ⚡ Performance Optimization
+
+* Java Parallel Streams used for concurrent data ingestion
+* Reduces latency for multi-agency analysis
+
+---
+
+### ☁️ Cloud Deployment (Render)
+
+* Dockerized application for portability
+* Dynamic port binding for cloud environments:
+
+```properties
 server.port=${PORT:8080}
+```
 
-This ensures compatibility with dynamic cloud-assigned ports.
+---
 
-🚀 Deployment Architecture
-Containerized using Docker (multi-stage build)
-Deployable on Render / cloud PaaS platforms
-Environment-driven configuration
-No hardcoded runtime dependencies
-🔐 Security Considerations
-SQL injection mitigated via Spring Data JPA parameterized queries
-Stateless API reduces session-based attack surface
-Designed for HTTPS-based deployment environments
-Future enhancement: encryption-at-rest for regulatory datasets
-📈 Key Features
-📊 Regulatory burden quantification via RD metric
-⚡ Parallel processing of federal agency datasets
-🔍 NLP-based prescriptive language detection
-🧾 SHA-256 dataset integrity verification
-📉 High-burden agency classification engine
-📡 Real-time dashboard visualization
-🧭 Engineering Tradeoffs
-Decision	Tradeoff
-H2 instead of PostgreSQL	Faster iteration, no persistence
-Stateless design	Scalability vs auditability
-Rule-based NLP	Interpretability vs ML complexity
-Parallel streams	CPU efficiency vs thread overhead
-🔮 Future Enhancements
-PostgreSQL-based persistent regulatory history tracking
-Versioned regulation change detection over time
-Event-driven ingestion pipeline (Kafka-based architecture)
-ML-based NLP classification of legal complexity
-Role-based access control for enterprise usage
-🧠 Summary
+## 🔐 Security Considerations
 
-The Federal Regulatory Insights Engine demonstrates how NLP + systems engineering + economic theory can be combined to quantify regulatory complexity at scale.
+* SQL injection mitigated via Spring Data JPA parameter binding
+* Stateless API reduces session-based attack surface
+* HTTPS-ready deployment architecture
+* Future: encryption-at-rest for regulatory datasets
 
-It is designed as a cloud-native, stateless analytics engine with a clear migration path toward enterprise-grade persistence and governance features.
+---
 
-🚀 Why this project matters
+## ☁️ Deployment
 
-This project demonstrates:
+### Local Run
 
-Systems thinking (not just application building)
-Cloud deployment awareness (Render constraints, Dockerization)
-Tradeoff reasoning (H2 vs PostgreSQL, stateless design)
-Scalable architecture design principles
-Applied NLP in real-world governance context
+```bash
+mvn spring-boot:run
+```
+
+### Docker Run
+
+```bash
+docker build -t reg-engine .
+docker run -p 8080:8080 reg-engine
+```
+
+---
+
+## 🧭 Tradeoffs
+
+| Decision         | Tradeoff                          |
+| ---------------- | --------------------------------- |
+| H2 DB            | Speed vs persistence              |
+| Stateless design | Scalability vs auditability       |
+| Rule-based NLP   | Interpretability vs ML complexity |
+| Parallel streams | Performance vs thread overhead    |
+
+---
+
+## 🔮 Future Enhancements
+
+* PostgreSQL-based regulatory history tracking
+* Versioned regulation change detection system
+* Kafka-based ingestion pipeline
+* ML-based classification of regulatory complexity
+* Role-based access control (enterprise upgrade)
+
+---
+
+## 🧠 Summary
+
+The Federal Regulatory Insights Engine demonstrates how **NLP, systems design, and economic theory** can be combined to quantify regulatory complexity.
+
+It is designed as a **cloud-native, stateless analytics engine** with a clear path toward enterprise-grade persistence and governance features.
+
+---
+
+## 🚀 Engineering Highlights
+
+* 🧠 Requirement Density (RD) metric design
+* ⚡ Parallel processing architecture
+* ☁️ Cloud-ready deployment (Render + Docker)
+* 🔐 Secure API design principles
+* 🏗️ Scalable system design thinking
+
+---
+
