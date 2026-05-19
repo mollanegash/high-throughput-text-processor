@@ -55,7 +55,6 @@ RD = -----------------------------
 `shall`, `must`, `prohibited`, `penalty`, `compliance`
 
 ---
-
 ## 🏗️ System Architecture
 
                     ┌────────────────────┐
@@ -111,7 +110,7 @@ RD = -----------------------------
 
 ---
 
-☁️ Infrastructure as Code (Terraform)
+## ☁️ Infrastructure as Code (Terraform)
 
 Terraform is used to provision and manage cloud resources:
 
@@ -147,7 +146,8 @@ The system processes external regulatory data into structured analytical insight
 
 ### 🧠 Stateless Design
 
-Stateless API design (with optional ephemeral in-memory persistence via H2 for development purposes)
+The system is designed as a stateless API. Each request is processed independently.  
+H2 is used only for development and does not represent persistent system state.
 
 ---
 
