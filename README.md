@@ -76,22 +76,25 @@ RD = -----------------------------
              ┌─────────────────────────────┐
              │ Service Layer               │
              │ (Business Logic + RD Engine)│
-             └───────────┬─────────────────┘
+             └───────┬─────────┬──────────┘
+                     │         │
+         ┌───────────▼─┐   ┌──▼───────────┐
+         │ NLP Engine   │   │ Repository   │
+         │ (RD Logic)   │   │ (Data Access)│
+         └──────┬──────┘   └────┬─────────┘
+                │               │
+                └──────┬────────┘
+                       ▼
+              ┌──────────────────┐
+              │ H2 Database      │
+              │ (In-Memory)      │
+              └──────────────────┘
                          │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
-┌────────────────┐ ┌────────────────┐ ┌────────────────────┐
-│ NLP Engine     │ │ Repository     │ │ eCFR Data Layer    │
-│ (RD Analysis)  │ │ (Data Access)  │ │ (Ingestion/Fetch)  │
-└────────────────┘ └──────┬─────────┘ └────────────────────┘
-                          │
-                          ▼
-                 ┌──────────────────┐
-                 │ H2 Database      │
-                 │ (In-Memory)      │
-                 └──────────────────┘
-
----
+                         ▼
+              ┌──────────────────┐
+              │ eCFR Data Layer  │
+              │ (Ingestion/API)  │
+              └──────────────────┘
 
 ## ⚙️ Tech Stack
 
@@ -108,6 +111,27 @@ RD = -----------------------------
 
 ---
 
+☁️ Infrastructure as Code (Terraform)
+
+Terraform is used to provision and manage cloud resources:
+
+- AWS ECR for Docker image registry
+- AWS S3 for dataset storage
+
+This enables reproducible infrastructure and version-controlled deployments.
+
+📦 System Boundary
+
+External:
+- eCFR dataset (source of regulatory data)
+
+Internal:
+- NLP engine
+- RD computation system
+- Dashboard + API
+
+The system processes external regulatory data into structured analytical insights.
+
 ## 🚀 Key Features
 
 * 📊 Regulatory burden quantification (RD metric)
@@ -123,7 +147,7 @@ RD = -----------------------------
 
 ### 🧠 Stateless Design
 
-The system is designed as a **stateless computation engine**, where each request is processed independently.
+Stateless API design (with optional ephemeral in-memory persistence via H2 for development purposes)
 
 ---
 
