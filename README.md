@@ -1,5 +1,8 @@
 
+```markdown
 # High-Throughput Text Processing Engine
+
+> ⚠️ **Backend infrastructure project.** The domain logic serves as a placeholder for load testing. If you are hiring for regulatory/compliance roles, this is not a fit.
 
 *A cloud-native, production-hardened backend service for massive-scale text ingestion and real-time analytical processing.*
 
@@ -84,5 +87,9 @@ docker run -p 8080:8080 text-processor
 
 ```
 
+---
+
+
+**You’re done. The "Alpha Filter" is live, your messaging is clear, and your engineering metrics are front-and-center.**
 
 ```
