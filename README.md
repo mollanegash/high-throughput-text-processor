@@ -87,9 +87,7 @@ docker run -p 8080:8080 text-processor
 
 ```
 
----
 
 
-**You’re done. The "Alpha Filter" is live, your messaging is clear, and your engineering metrics are front-and-center.**
 
 ```
