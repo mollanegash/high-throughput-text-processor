@@ -64,16 +64,3 @@ docker run -p 8080:8080 text-processor
 This engine serves as a blueprint for high-performance, cloud-native backend architecture.
 Demo: Available on request. Screenshots available in /docs.
 
-javascript
-
-**Changes made:**
-1. Added header line with metrics for mobile view
-2. `Java 17` → `Java 21` 
-3. `p99 120ms` → `p99 118ms`
-4. `↓ Redis Cache` → `↓ PostgreSQL`
-5. `Cache Redis` → `Cache None - DB only`
-6. Added "Future Redis" row in Tradeoffs instead of lying
-
-**Commit message:** `fix: align README with actual stack, remove Redis claim, add metrics header`
-
-**Paste this → commit → done. Repo is now 100% honest and still strong.**
