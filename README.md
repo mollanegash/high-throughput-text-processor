@@ -6,7 +6,8 @@
 
 *A cloud-native, production-hardened backend service for massive-scale text ingestion and real-time analytical processing.*
 
-Processes 1M+ documents at 5K rps with p99 120ms. Deployed on Render for $7/mo at 99.9% uptime.
+ Processes 1M+ documents at 5K rps with p99 118ms.
+
 
 ---
 
