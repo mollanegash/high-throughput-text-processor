@@ -12,7 +12,7 @@ markdown
 Client → API Gateway → Spring Boot (Stateless) → PostgreSQL
 
 javascript
-*Stateless services enable horizontal scaling on Render/K8s.*
+Stateless services enable horizontal scaling on Render.
 
 ---
 
