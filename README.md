@@ -1,10 +1,8 @@
-
-````md
 # High-Throughput Text Processing Engine
 
 Java 21 + Spring Boot 3 | Concurrent Processing (Parallel Streams) | Stateless Backend | Docker | Terraform | Live on Render
 
-Live URL:
+Live URL:  
 https://federal-regulations-analyzer-fahp.onrender.com
 
 ---
@@ -13,7 +11,7 @@ https://federal-regulations-analyzer-fahp.onrender.com
 
 A cloud-native backend application for ingesting and analyzing regulatory text data from public APIs. Built with Java 21 and Spring Boot 3, the system focuses on concurrent processing, performance optimization, and stateless architecture design.
 
-The application processes regulatory agency data, performs text analysis, and persists results in an embedded database. It is designed to be production-ready and easily portable to PostgreSQL.
+The application processes regulatory agency data, performs text analysis, and persists results in an embedded H2 database. It is designed with a PostgreSQL-compatible schema for future migration.
 
 ---
 
@@ -21,7 +19,7 @@ The application processes regulatory agency data, performs text analysis, and pe
 
 Client → Spring Boot API → Processing Layer → H2 Database (stateless service)
 
-Key design principle:
+Key design principles:
 - Stateless backend service enabling horizontal scalability
 - No session dependency between requests
 
@@ -48,8 +46,9 @@ The system was evaluated using Apache JMeter under controlled load testing.
 
 - Tool: Apache JMeter
 - Deployment: Single-instance Render environment
-- Concurrency: (define your thread count here if you want precision)
+- Concurrency: (define your thread count if needed)
 - Test type: sustained load test
+- Load testing performed using Apache JMeter (single-instance Render deployment, controlled concurrency)
 
 Results:
 - Throughput: up to ~5,000 requests/sec
@@ -70,13 +69,13 @@ Results reflect single-node deployment using Java Parallel Streams and H2 embedd
 
 ## Technology Stack
 
-| Layer        | Technology |
-|--------------|-----------|
-| Backend      | Java 21, Spring Boot 3 |
-| Database     | H2 |
+| Layer          | Technology |
+|----------------|------------|
+| Backend        | Java 21, Spring Boot 3 |
+| Database       | H2 |
 | Infrastructure | Docker, Terraform |
-| CI/CD        | GitHub Actions |
-| Deployment   | Render |
+| CI/CD          | GitHub Actions |
+| Deployment     | Render |
 
 ---
 
@@ -107,18 +106,9 @@ Results reflect single-node deployment using Java Parallel Streams and H2 embedd
 ---
 
 ## How to Run Locally
-
-```bash
-./mvnw spring-boot:run
-````
-
-```bash
 docker build -t text-processor .
 docker run -p 8080:8080 text-processor
-```
 
-```
-
----
-
-
+### Run with Maven
+```bash
+./mvnw spring-boot:run
