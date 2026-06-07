@@ -121,15 +121,7 @@ docker run -p 8080:8080 text-processor
 
 ---
 
-## Why this version works
 
-- ✔ No overclaiming (no “distributed system” misuse)
-- ✔ Keeps your real strengths (parallel processing + performance)
-- ✔ Makes JMeter results credible (with context)
-- ✔ Aligns with actual code (H2, stateless, streams)
-- ✔ Still sounds strong to recruiters
-
----
 
 and reinforce each other.
 ```
