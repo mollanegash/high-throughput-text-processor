@@ -2,7 +2,7 @@
 ````md
 # High-Throughput Text Processing Engine
 
-Java 21 + Spring Boot 3 | Concurrent Processing | Docker | Terraform | Live on Render
+Java 21 + Spring Boot 3 | Concurrent Processing (Parallel Streams) | Stateless Backend | Docker | Terraform | Live on Render
 
 Live URL:
 https://federal-regulations-analyzer-fahp.onrender.com
