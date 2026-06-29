@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.regex.Matcher;
@@ -34,15 +37,21 @@ public class EcfrService {
     public void syncAgencies(int limit) {
         log.info("Starting sync for {} agencies...", limit);
 
-        AgencyResponse response = restClient.get()
-                .uri("https://www.ecfr.gov/api/admin/v1/agencies.json")
-                .retrieve()
-                .body(AgencyResponse.class);
+        AgencyResponse response;
+        try {
+            response = restClient.get()
+                    .uri("https://www.ecfr.gov/api/admin/v1/agencies.json")
+                    .retrieve()
+                    .body(AgencyResponse.class);
+        } catch (RestClientException ex) {
+            log.error("Failed to fetch agency list from eCFR", ex);
+            throw new IllegalStateException("Unable to fetch agency list from eCFR.", ex);
+        }
 
         if (response != null && response.agencies() != null) {
             repository.deleteAll();
 
-            response.agencies().parallelStream()
+            response.agencies().stream()
                     .limit(limit)
                     .forEach(this::processAgency);
 
@@ -78,17 +87,25 @@ public class EcfrService {
 
     private String fetchAgencySearchJson(String slug) {
         try {
-            String url = "https://www.ecfr.gov/api/search/v1/results?" +
-                    "agency_slug=" + slug +
-                    "&per_page=50" +
-                    "&order=newest";
+            URI uri = UriComponentsBuilder.newInstance()
+                    .scheme("https")
+                    .host("www.ecfr.gov")
+                    .path("/api/search/v1/results")
+                    .queryParam("agency", slug)
+                    .queryParam("per_page", 50)
+                    .queryParam("order", "newest")
+                    .build()
+                    .encode()
+                    .toUri();
+
+            log.info("Requesting eCFR search URL for agency '{}' : {}", slug, uri);
 
             return restClient.get()
-                    .uri(url)
+                    .uri(uri)
                     .retrieve()
                     .body(String.class);
-        } catch (Exception e) {
-            log.warn("Search API failed for {}. Returning empty results.", slug);
+        } catch (RestClientException e) {
+            log.warn("Search API failed for {}. Returning empty results.", slug, e);
             return "{\"results\": []}";
         }
     }

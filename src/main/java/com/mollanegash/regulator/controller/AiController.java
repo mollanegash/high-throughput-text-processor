@@ -1,6 +1,8 @@
 package com.mollanegash.regulator.controller;
 
+import com.mollanegash.regulator.model.RegulatoryAnalysis;
 import com.mollanegash.regulator.service.RegulatoryIntelligenceService;
+import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,13 +20,28 @@ public class AiController {
         this.intelligenceService = intelligenceService;
     }
 
-    @PostMapping(path = "/analyze", consumes = MediaType.TEXT_PLAIN_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> analyze(@RequestBody String query) {
-        if (query == null || query.isBlank()) {
-            return ResponseEntity.badRequest().body("Query must be a non-empty string.");
-        }
+    @PostMapping(
+            path = "/analyze",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<AnalyzeResponse> analyze(@Valid @RequestBody AnalyzeRequest request) {
 
-        String result = intelligenceService.getRegulatoryInsight(query.trim());
-        return ResponseEntity.ok(result);
+        String result = intelligenceService.getRegulatoryInsight(request.query().trim());
+
+        return ResponseEntity.ok(new AnalyzeResponse(result, null));
+    }
+
+    @PostMapping(
+            path = "/analyze-agency",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<RegulatoryAnalysis> analyzeAgency(@Valid @RequestBody AnalyzeRequest request) {
+
+        return ResponseEntity.ok(
+                intelligenceService.performAnalysis(request.query().trim())
+        );
     }
 }
+

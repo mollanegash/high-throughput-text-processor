@@ -1,121 +1,150 @@
 package com.mollanegash.regulator.service;
 
+import com.mollanegash.regulator.model.RegulatoryAnalysis;
 import com.mollanegash.regulator.model.RegulatoryInsight;
+import com.mollanegash.regulator.repository.RegulatoryAnalysisRepository;
 import com.mollanegash.regulator.repository.RegulatoryInsightRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RegulatoryIntelligenceServiceImpl implements RegulatoryIntelligenceService {
 
-    private static final Logger log = LoggerFactory.getLogger(RegulatoryIntelligenceServiceImpl.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(RegulatoryIntelligenceServiceImpl.class);
 
-    private final RegulatoryInsightRepository vectorRepository;
+    private final RegulatoryInsightRepository insightRepository;
+    private final RegulatoryAnalysisRepository analysisRepository;
+
     private final ChatClient chatClient;
     private final EmbeddingModel embeddingModel;
 
-    public RegulatoryIntelligenceServiceImpl(RegulatoryInsightRepository vectorRepository,
-                                              ChatClient.Builder builder,
-                                              EmbeddingModel embeddingModel) {
-        this.vectorRepository = vectorRepository;
-        this.chatClient = builder
-                .defaultSystem("You are an expert in federal regulations.")
-                .build();
+    private final String openAiApiKey;
+    private final String openAiModel;
+
+    public RegulatoryIntelligenceServiceImpl(
+            RegulatoryInsightRepository insightRepository,
+            RegulatoryAnalysisRepository analysisRepository,
+            ChatClient.Builder chatClientBuilder,
+            EmbeddingModel embeddingModel,
+            @Value("${spring.ai.openai.api-key:}") String openAiApiKey,
+            @Value("${spring.ai.openai.chat.model:gpt-4o-mini}") String openAiModel
+    ) {
+        this.insightRepository = insightRepository;
+        this.analysisRepository = analysisRepository;
         this.embeddingModel = embeddingModel;
+
+        this.chatClient = chatClientBuilder
+                .defaultSystem("You are a strict regulatory AI. Respond ONLY with a numeric percentage (example: 42.5). No words.")
+                .build();
+
+        this.openAiApiKey = openAiApiKey;
+        this.openAiModel = openAiModel;
     }
 
     @Override
     @Transactional
     public String getRegulatoryInsight(String query) {
-        log.info("Starting regulatory insight generation for query: {}", query);
 
         if (query == null || query.isBlank()) {
-            return "Query must not be empty.";
+            throw new IllegalArgumentException("Query cannot be empty");
         }
-
-        List<Float> queryEmbedding = prepareQueryEmbedding(query);
-        Optional<RegulatoryInsight> similarityMatch = vectorRepository.findTopByEmbeddingSimilarity(queryEmbedding);
-
-        String context = similarityMatch.map(this::formatContext)
-                .orElse("No relevant regulatory context was found for the query.");
-
-        String densityResponse = chatClient.prompt()
-                .system(s -> s.text("You are a regulatory analysis assistant. Use the provided context to determine the regulatory requirement density for the query. " +
-                        "Respond with numeric density only, as a single number representing percentage. Do not include text, units, or explanation."))
-                .user(u -> u.text("Context:\n{context}\n\nUser query:\n{query}")
-                        .param("context", context)
-                        .param("query", query))
-                .call()
-                .content();
-
-        double requirementDensity = parseDensity(densityResponse);
-        RegulatoryInsight insightToSave = buildInsightForPersistence(similarityMatch, context, requirementDensity);
-        vectorRepository.save(insightToSave);
-
-        return String.format("%.2f", requirementDensity);
-    }
-
-    private RegulatoryInsight buildInsightForPersistence(Optional<RegulatoryInsight> similarityMatch,
-                                                         String context,
-                                                         double requirementDensity) {
-        RegulatoryInsight insight = similarityMatch.orElseGet(RegulatoryInsight::new);
-        if (insight.getAgencyName() == null || insight.getAgencyName().isBlank()) {
-            insight.setAgencyName("Unknown");
-        }
-        if (insight.getSummary() == null || insight.getSummary().isBlank()) {
-            insight.setSummary(context);
-        }
-        if (insight.getComplianceRiskLevel() == null || insight.getComplianceRiskLevel().isBlank()) {
-            insight.setComplianceRiskLevel("UNKNOWN");
-        }
-        if (insight.getEmbeddingVector() == null) {
-            insight.setEmbeddingVector(Collections.emptyList());
-        }
-        insight.setRequirementDensity(requirementDensity);
-        return insight;
-    }
-
-    private double parseDensity(String response) {
-        if (response == null) {
-            throw new IllegalArgumentException("Requirement density response cannot be null.");
-        }
-
-        String cleaned = response.trim();
-        if (cleaned.endsWith("%")) {
-            cleaned = cleaned.substring(0, cleaned.length() - 1).trim();
-        }
-        cleaned = cleaned.replaceAll("[^0-9+\\-Ee.]+", "");
 
         try {
-            return Double.parseDouble(cleaned);
-        } catch (NumberFormatException ex) {
-            log.error("Failed to parse numeric density from AI response: '{}'", response, ex);
-            throw new IllegalStateException("Unable to parse requirement density from AI response.", ex);
+            List<Float> embedding = prepareQueryEmbedding(query);
+            String embeddingJson = toEmbeddingJson(embedding);
+
+            List<RegulatoryInsight> similar =
+                    insightRepository.findTop5ByEmbeddingSimilarity(embeddingJson);
+
+            String context = buildContext(similar);
+
+            String aiResponse = requestAi(context, query);
+            double density = parseDensity(aiResponse);
+
+            analysisRepository.save(new RegulatoryAnalysis(
+                    query,
+                    aiResponse,
+                    density,
+                    similar.isEmpty() ? null : similar.get(0),
+                    null
+            ));
+
+            return String.format("%.2f", density);
+
+        } catch (RuntimeException ex) {
+            log.error("AI pipeline failed", ex);
+            return "0.00";
         }
     }
 
     private List<Float> prepareQueryEmbedding(String query) {
         float[] embeddings = embeddingModel.embed(query);
 
-        List<Float> embeddingList = new ArrayList<>(embeddings.length);
-        for (float value : embeddings) {
-            embeddingList.add(value);
+        List<Float> result = new java.util.ArrayList<>(embeddings.length);
+        for (float v : embeddings) {
+            result.add(v);
         }
-        return embeddingList;
+
+        return result;
     }
 
-    private String formatContext(RegulatoryInsight insight) {
-        return "Agency: " + insight.getAgencyName() + "\n" +
-               "Compliance risk level: " + insight.getComplianceRiskLevel() + "\n" +
-               "Summary: " + insight.getSummary();
+    private String requestAi(String context, String query) {
+
+        return chatClient.prompt()
+                .system(s -> s.text(
+                        "You are a regulatory scoring engine. " +
+                        "Use context and return ONLY a number like 0-100. No text."
+                ))
+                .user(u -> u.text(
+                        "Context:\n{context}\n\nQuery:\n{query}"
+                )
+                        .param("context", context)
+                        .param("query", query))
+                .call()
+                .content();
+    }
+
+    private String toEmbeddingJson(List<Float> embedding) {
+        return "[" + embedding.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(",")) + "]";
+    }
+
+    private String buildContext(List<RegulatoryInsight> insights) {
+        if (insights == null || insights.isEmpty()) {
+            return "No context available.";
+        }
+
+        return insights.stream()
+                .map(i -> i.getAgencyName() + " | " + i.getSummary())
+                .collect(Collectors.joining("\n"));
+    }
+
+    private double parseDensity(String response) {
+        if (response == null || response.isBlank()) {
+            throw new IllegalStateException("Empty AI response");
+        }
+
+        String cleaned = response.replaceAll("[^0-9.]", "");
+
+        if (cleaned.isBlank()) {
+            throw new IllegalStateException("Cannot parse AI response: " + response);
+        }
+
+        return Double.parseDouble(cleaned);
+    }
+
+    @Override
+    public RegulatoryAnalysis performAnalysis(String agencyName) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 }

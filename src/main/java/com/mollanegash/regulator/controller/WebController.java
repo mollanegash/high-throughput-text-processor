@@ -1,6 +1,7 @@
 package com.mollanegash.regulator.controller;
 
 import com.mollanegash.regulator.model.Agency;
+import com.mollanegash.regulator.model.AgencyDto;
 import com.mollanegash.regulator.repository.AgencyRepository;
 import com.mollanegash.regulator.service.EcfrService;
 import org.slf4j.Logger;
@@ -39,8 +40,10 @@ public class WebController {
     }
 
     @GetMapping("/api/agencies")
-    public ResponseEntity<List<Agency>> getRawData() {
-        List<Agency> agencies = agencyRepository.findAll();
+    public ResponseEntity<List<AgencyDto>> getRawData() {
+        List<AgencyDto> agencies = agencyRepository.findAll().stream()
+                .map(agency -> new AgencyDto(agency.getName(), agency.getSlug()))
+                .toList();
         return ResponseEntity.ok(agencies);
     }
 }
